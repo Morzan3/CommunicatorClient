@@ -1,58 +1,123 @@
 package pl.slusarczyk.ignacy.CommunicatorClient.view;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.*;
-import java.awt.*;
+import java.util.concurrent.BlockingQueue;
 
-/** Klasa odpowiedzialna za wyświetlanie okna wyboru stworzenia lub dołączenia do pokoju**/
-class CreateJoinRoomWindow 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.CreateNewRoom;
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.JoinExistingRoom;
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.UserName;
+import pl.slusarczyk.ignacy.CommunicatorServer.model.UserId;
+
+/**Klasa odpowiedzialna za okno tworzenia nowego pokoju**/
+class CreateJoinRoomWindow
 {
 	/**Ramka aplikacji*/
-	final private JFrame frame;
-	/**Przycisk dołączania do istniejącego pokoju*/
-	private JButton joinExistingRoom;
-	/**Przycisk tworzenia nowego pokoju*/
-	private JButton createNewRoomButton;
-	
-	public CreateJoinRoomWindow()
-	{
-		/**Inicjalizowanie głównej ramki*/
-		frame = new JFrame("Chat");
-		frame.setSize(400, 200);
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(new BorderLayout());
-		Container container = frame.getContentPane();
+	final JFrame frame;
 
-		/**Inicjalizujemy przycisk dołączania i tworzenia pokoju, ustawiamy ich rozmiar i dodajemy je do kontenera*/
-		joinExistingRoom = new JButton(("Join existing room"));
-		createNewRoomButton = new JButton("Create new room");
-		container.add(createNewRoomButton,BorderLayout.NORTH);
-		container.add(joinExistingRoom, BorderLayout.SOUTH);
-		createNewRoomButton.setPreferredSize(new Dimension(400, 100));
-		joinExistingRoom.setPreferredSize(new Dimension(400, 100));
+	/**Pole wpisywania nazwy użytkownika*/
+	final JTextField userNameField;
+	/**Pole wpisywania nazwy pokoju*/
+	final JTextField roomNameField;
+	/**Przycisk potwierdzający wpisane informacje i tworzący nowy pokój*/
+	JButton submitInformationButtonAndJoinRoom;
+	/**Przycisk potwierdzający wpisane informacje i dołączanie do nowego pokoju*/
+	JButton submitInformationButtonAndCreateRoom;
+	/**Kolejka blokujaca do ktorej sa dodawane nowe eventy*/
+	private final BlockingQueue<ServerHandeledEvent> eventQueue;
+
+	public CreateJoinRoomWindow(final BlockingQueue<ServerHandeledEvent> eventQueueObject)
+	{
+		this.eventQueue = eventQueueObject;
+		/**Tworzymy główne okno tworzenia nowego pokoju*/
+		frame = new JFrame("Create or join room");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(new Dimension(400, 150));
 	
-		frame.setVisible(true);
+		/**Ustawiamy odpowiedni Layout*/
+		JPanel container = new JPanel();	
+		BoxLayout layout = new BoxLayout(container, BoxLayout.Y_AXIS);
+		container.setLayout(layout);
+			
+		/**Inicjalizujemy przycisk oraz obszary wpisywania informacji*/
+		submitInformationButtonAndJoinRoom = new JButton("Create");
+		submitInformationButtonAndJoinRoom.addActionListener(new ActionListener() 
+		{	
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{	
+				UserId userId = new UserId(userNameField.getText());
+				eventQueue.offer(new UserName(userId, roomNameField.getText()));
+				eventQueue.offer(new CreateNewRoom(roomNameField.getText(), userId));
+			}
+		});
+		
+		submitInformationButtonAndCreateRoom = new JButton("Join");
+		submitInformationButtonAndCreateRoom.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e) 
+			{
+				UserId userId = new UserId(userNameField.getText());
+				eventQueue.offer(new UserName(userId, roomNameField.getText()));	
+				eventQueue.offer(new JoinExistingRoom(roomNameField.getText(), userId));
+			}
+		});
+		
+		userNameField = new JTextField();
+		roomNameField = new JTextField();
+			
+			
+		/**Ustawiamy położenie wszystkich elementów*/
+		userNameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+		roomNameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+		submitInformationButtonAndJoinRoom.setAlignmentX(Component.CENTER_ALIGNMENT);
+		submitInformationButtonAndCreateRoom.setAlignmentX(Component.CENTER_ALIGNMENT);
+		
+		/**Ustawiamy tekst domyślnie wpisany w poszczególne pola, pełniący funkcję infomracyjną*/
+		userNameField.setText("Test");
+		roomNameField.setText("Projekt");
+			
+		/**Dodajemy wszystkie elemenety do kontenera*/
+		 container.add(userNameField);
+		 container.add(roomNameField);
+		 container.add(submitInformationButtonAndJoinRoom);
+		 container.add(submitInformationButtonAndCreateRoom);
+			 
+		 /**Dodajemy kontener do głównej ramki oraz wyświeltamy główna ramkę*/
+		 frame.add(container);
+		 frame.setVisible(true);
+			  
+
 	}
 	
-	
-	public void closeCreateJoinRoom()
+	/**
+	 * Metoda odpowiedzialna za zamknięcie okna
+	 */
+	public void closeCreateRoomWindow()
 	{
 		frame.setVisible(false);
 		frame.dispose();
 	}
 	
-	// LISTENERY
-
-	public void addCreateNewRoomButtonListener(ActionListener listenForCreateNewRoomButton) 
+	public void userAlreadyExists()
 	{
-		createNewRoomButton.addActionListener(listenForCreateNewRoomButton);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run()
+			{
+				JOptionPane.showMessageDialog(frame, "Użytkownik o takim nicku już istnieje");
+			}
+		});
 	}
-	
-	
-	public void addJoinExistingRoomButtonListener(ActionListener listenForJoinExistingRoom)
-	{
-		joinExistingRoom.addActionListener(listenForJoinExistingRoom);
-	}	
 }

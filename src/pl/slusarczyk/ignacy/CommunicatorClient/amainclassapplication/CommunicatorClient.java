@@ -2,9 +2,10 @@ package pl.slusarczyk.ignacy.CommunicatorClient.amainclassapplication;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import pl.slusarczyk.ignacy.CommunicatorClient.controller.Controller;
+
+import pl.slusarczyk.ignacy.CommunicatorClient.connection.Client;
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
 import pl.slusarczyk.ignacy.CommunicatorClient.view.View;
-import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.ClientHandeledEvent;
 
 /**
  * Główna klasa applikacji odpowiada za odpowiednie zainicjalizowanie wszystkich komponentów
@@ -20,9 +21,9 @@ public class CommunicatorClient
 	 */
 	public static void main(String args[])
 	{
-		BlockingQueue<ClientHandeledEvent> eventQueue = new LinkedBlockingQueue<ClientHandeledEvent>();
+		BlockingQueue<ServerHandeledEvent> eventQueue = new LinkedBlockingQueue<ServerHandeledEvent>();
 		View view = new View(eventQueue);
-		Controller controller = new Controller(eventQueue, view);
-		controller.work();
+		Client client = new Client(eventQueue,"localhost", 5000, view);
+		client.listenEventAndSend();
 	}
 }

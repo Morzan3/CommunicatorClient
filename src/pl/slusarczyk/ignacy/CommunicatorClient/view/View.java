@@ -1,22 +1,18 @@
 package pl.slusarczyk.ignacy.CommunicatorClient.view;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.ClientHandeledEvent;
-import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.CloseWindowButtonViewEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.ConnectionEstablishedServerEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.ConversationInformationServerEvent;
-import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.CreateRoomButtonViewEventEvent;
-import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.JoinRoomButtonViewEvent;
-import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.SendMessageButtonViewEvent;
+import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.UserAlreadyExistsServerEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.model.data.MessageData;
 import pl.slusarczyk.ignacy.CommunicatorServer.model.data.UserData;
 
@@ -30,31 +26,80 @@ public class View
 {
 	/**Okno wyboru dołączenia lub stworzenia nowego pokoju*/
 	private CreateJoinRoomWindow createJoinRoomView;
-	/**Okno wpisywania informacji do stworzenia pokoju*/
-	private CreateRoomWindow createRoomView;
-	/**Okno wpisywania ifnormacji do dołączenia do pokoju*/
-	private JoinRoomWindow joinRoomView;
 	/**Główne okno chatu*/
 	private MainChatWindow mainChatView;
 	/**Kolejka blokująca do której wrzucamy zdarzenia obsługiwane przez kontroler*/
-	private final BlockingQueue<ClientHandeledEvent> eventQueue;
+	private final BlockingQueue<ServerHandeledEvent> eventQueue;
+	
+	private final Map<Class<? extends ClientHandeledEvent>, ClientHandeledEventStrategy> strategyMap;
 	
 	/**
 	 * Konstruktor tworzący widok na podstawie zadanego parametru
 	 * 
 	 * @param eventQueue kolejka blokująca
 	 */
-	public View(BlockingQueue<ClientHandeledEvent> eventQueue)
+	public View(BlockingQueue<ServerHandeledEvent> eventQueue)
 	{
-		this.createJoinRoomView = new CreateJoinRoomWindow();
-		this.createJoinRoomView.addCreateNewRoomButtonListener(new CreateNewRoomButtonListener ());
-		this.createJoinRoomView.addJoinExistingRoomButtonListener(new JoinExistingRoomButtonListener());
-	
-		this.createRoomView = null;
-		this.joinRoomView = null;
-		this.mainChatView = null;
-	
+		this.createJoinRoomView = new CreateJoinRoomWindow(eventQueue);
 		this.eventQueue = eventQueue;
+		
+		this.strategyMap = new HashMap<Class<? extends ClientHandeledEvent>, ClientHandeledEventStrategy>();
+		this.strategyMap.put(ConnectionEstablishedServerEvent.class, new ConnectionEstablishedStrategy());
+		this.strategyMap.put(ConversationInformationServerEvent.class, new ConversationInformationServerEventStrategy());
+		this.strategyMap.put(UserAlreadyExistsServerEvent.class, new UserAlreadyExistsServerEventStrategy());
+	}
+	
+	public void setServerEvent(ClientHandeledEvent clientHandeledEventObject) 
+	{
+		ClientHandeledEventStrategy clientHandeledEventStrategy = strategyMap.get(clientHandeledEventObject.getClass());
+		clientHandeledEventStrategy.execute((ClientHandeledEvent)clientHandeledEventObject);
+	}
+	
+	abstract class ClientHandeledEventStrategy {
+		
+		/**
+		 * Obsługuje makiety
+		 * 
+		 * @param 
+		 */
+		abstract void execute(final ClientHandeledEvent clientHandeledEventObject);
+	}
+	
+	
+	class ConnectionEstablishedStrategy extends ClientHandeledEventStrategy
+	{
+		
+		@Override
+		void execute(ClientHandeledEvent clientHandeledEventObject) 
+		{
+			ConnectionEstablishedServerEvent connectionEstablishedInformation = (ConnectionEstablishedServerEvent) clientHandeledEventObject;
+			mainChatView = new MainChatWindow(eventQueue,connectionEstablishedInformation.getUserID(), connectionEstablishedInformation.getRoomName());
+			createJoinRoomView.closeCreateRoomWindow();
+			createJoinRoomView = null;
+		}
+	}
+	
+	class ConversationInformationServerEventStrategy extends ClientHandeledEventStrategy
+	{
+		
+		@Override
+		void execute(ClientHandeledEvent clientHandeledEventObject) 
+		{
+			ConversationInformationServerEvent conversationInformationObject = (ConversationInformationServerEvent) clientHandeledEventObject;
+			updateUserConversationAndList(conversationInformationObject);
+			
+		}
+	}
+	
+	class UserAlreadyExistsServerEventStrategy extends ClientHandeledEventStrategy
+	{
+
+		@Override
+		void execute(ClientHandeledEvent clientHandeledEventObject) 
+		{
+			createJoinRoomView.userAlreadyExists();
+		}
+		
 	}
 	
 	/**
@@ -173,185 +218,5 @@ public class View
 			usersListToDisplay = usersListToDisplay + imie + "\n";
 		}
 		mainChatView.updateUsersList(usersListToDisplay);
-	}
-	
-	/**
-	 * Metoda wywoływana po otrzymaniu potwierdzenia od serwera, iż połączenie zostało nawiązane. Zamyka dotychczasowe 
-	 * okna i wyświetla okno rozmowy,
-	 * 
-	 * @param connectionEstablishedServerEvent czy połączenie nawiązane
-	 */
-	public void connectionEstablishedServerEvent(ConnectionEstablishedServerEvent connectionEstablishedServerEvent)
-	{
-		if(connectionEstablishedServerEvent.getConnectionInfrmation() == true)
-		{
-			if(joinRoomView != null)
-			{
-				joinRoomView.closeJoinRoomWindow();
-				joinRoomView = null;
-			}
-			else
-			{
-				createRoomView.closeCreateRoomWindow();
-				createRoomView = null;
-			}
-			
-			mainChatView = new MainChatWindow();
-			mainChatView.addSendMessageButtonListener(new SendMessageButtonListener());
-			mainChatView.addWindowCloseButtonListener(new CloseWindowButtonListener());
-		}
-	}
-
-	//Listenery
-	
-	/**
-	 * Strategi obsługi kliknięcia przycisku wyboru utworzenia nowego pokoju przez użytkownika
-	 * 
-	 * @author Ignacy Ślusarczyk
-	 */
-	class CreateNewRoomButtonListener implements ActionListener
-	{
-		@Override
-		public void actionPerformed(ActionEvent e) 
-		{
-			createJoinRoomView.closeCreateJoinRoom();
-			createJoinRoomView = null;
-			
-			createRoomView = new CreateRoomWindow();
-			createRoomView.addSubmitCreateRoomButton(new SubmitCreateNewRoomButtonListener());	
-		}
-	}
-	
-	/**
-	 * Obsługa kliknięcia przycisku wyboru dołączenia do istniejącego pokoju przez użytkownika
-	 * 
-	 * @author Ignacy Ślusarczyk
-	 */
-	class JoinExistingRoomButtonListener implements ActionListener
-	{
-		@Override
-		public void actionPerformed(ActionEvent e) 
-		{
-			createJoinRoomView.closeCreateJoinRoom();
-			createJoinRoomView = null;
-			
-			joinRoomView = new JoinRoomWindow();
-			joinRoomView.addSubmitJoinRoomButton(new SubmitJoinNewRoomButtonListener());		
-		}
-	}
-	
-	/**
-	 * Obsługa kliknięcia przycisku podania informacji o tworzonym nowym pokoju
-	 * 
-	 * @author Ignacy Ślusarczyk
-	 */
-	class SubmitCreateNewRoomButtonListener implements ActionListener
-	{
-		@Override
-		public void actionPerformed(ActionEvent e) 
-		{
-			try
-			{
-				eventQueue.put(new CreateRoomButtonViewEventEvent(createRoomView.getHostName(),Integer.parseInt(createRoomView.getPortNumber()), createRoomView.getUserName(),createRoomView.getHostName()));
-			}
-			catch (InterruptedException ex)
-			{
-				System.err.println("Client, controller,create new room button" + ex);
-			}
-		}
-	}
-	
-	/**
-	 * Obsługa kliknięcia przez użytkownika przycisku podania informacji o pokoju do którego chce dołączyć  
-	 * 
-	 * @author Ignacy Ślusarczyk
-	 */
-	class SubmitJoinNewRoomButtonListener implements ActionListener
-	{
-
-		@Override
-		public void actionPerformed(ActionEvent e) 
-		{
-			try
-			{
-				eventQueue.put(new JoinRoomButtonViewEvent(joinRoomView.getHostName(),Integer.parseInt(joinRoomView.getPortNumber()), joinRoomView.getUserName(),joinRoomView.getHostName()));
-			}
-			catch(InterruptedException ex)
-			{
-				System.err.println(ex);
-			}
-		}
-		
-	}
-	
-	/**
-	 * Obsługa kliknięcia przez użytkownika przycisku wysłania wiadomości
-	 * 
-	 * @author Ignacy Ślusarczyk
-	 */
-	class SendMessageButtonListener implements ActionListener
-	{
-		@Override
-		public void actionPerformed(ActionEvent e) 
-		{
-			try
-			{
-				eventQueue.put(new SendMessageButtonViewEvent(mainChatView.getUserTextField()));
-			}
-			catch (InterruptedException ex)
-			{
-				System.err.println("Send message button listener problem" + ex);
-			}
-		}	
-	}
-	
-	/**
-	 * Strategia obsługi kliknięcia przez użytkownika przycisku wyjścia z chatu
-	 * 
-	 * @author Ignacy Ślusarczyk
-	 */
-	class CloseWindowButtonListener implements WindowListener
-	{
-		
-		@Override
-		public void windowClosing(WindowEvent eve) 
-		{
-			try
-			{
-				eventQueue.put(new CloseWindowButtonViewEvent());
-				mainChatView.closeMainChatView();
-			}
-			catch(InterruptedException ex)
-			{
-				System.err.println(ex);
-			}
-		}
-		
-		public void windowActivated(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		public void windowClosed(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		public void windowDeactivated(WindowEvent e) {
-			// TODO Auto-generated method stub
-		}
-
-		
-		public void windowDeiconified(WindowEvent e) {
-			// TODO Auto-generated method stub
-		}
-
-		
-		public void windowIconified(WindowEvent e) {
-			// TODO Auto-generated method stub
-		}
-		public void windowOpened(WindowEvent e) {
-			// TODO Auto-generated method stub
-		}
 	}
 }

@@ -1,7 +1,9 @@
 package pl.slusarczyk.ignacy.CommunicatorClient.view;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowListener;
+import java.util.concurrent.BlockingQueue;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -9,6 +11,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.NewMessage;
+import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
+import pl.slusarczyk.ignacy.CommunicatorServer.model.UserId;
 
 /**Klasa odpowiedzialna za wyświetlanie głównego okna chatu**/
 
@@ -30,11 +36,17 @@ class MainChatWindow
 	private JScrollPane userConversationScroll;
 	private JScrollPane userTextMessageScroll;
 	private JScrollPane onlineUsersScroll;
-
-
+	/**Kolejka blokujaca do ktorej sa dodawane nowe eventy*/
+	private final BlockingQueue<ServerHandeledEvent> eventQueue;
+	private final UserId userId;
+	private final String roomName;
+	
 	/**Konstruktro inicjulizujący i wyświetlający ramkę*/
-	public MainChatWindow()
+	public MainChatWindow( final BlockingQueue<ServerHandeledEvent> eventQueue, UserId userId, String roomName)
 	{	
+		this.userId = userId;
+		this.roomName = roomName;
+		this.eventQueue = eventQueue;
 		initialize();
 		frame.setVisible(true);
 	}
@@ -47,7 +59,7 @@ class MainChatWindow
 		/**Inicjalizowanie głównej ramki*/
 		frame = new JFrame("ChatRoom");
 		frame.setBounds(100, 100, 450, 320);
-		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
 		/**Inicjalizowanie obszaru rozmowy użytkowników wraz ze scrollerem*/
@@ -79,6 +91,17 @@ class MainChatWindow
 		/**Inicjalizowanie wycisku wyślij*/
 		sendButton = new JButton("Send");
 		sendButton.setBounds(288, 224, 117, 25);
+		sendButton.addActionListener(new ActionListener() 
+		{
+			
+			@Override
+			public void actionPerformed(ActionEvent e) 
+			{
+				eventQueue.offer(new NewMessage(roomName,userId,userTextfield.getText()));
+				userTextfield.setText("");
+			}
+		});
+		
 		frame.getContentPane().add(sendButton);
 		
 		/**Inicjalizowanie etykiety wkazującej listę obecnych użytkowników*/
@@ -88,35 +111,7 @@ class MainChatWindow
 		
 	}
 	
-	/**
-	 * Listener przycisku wysłania wiadomości
-	 * 
-	 * @param listenForSendMessageButton
-	 */
-	public void addSendMessageButtonListener(ActionListener listenForSendMessageButton) 
-	{
-		sendButton.addActionListener(listenForSendMessageButton);
-	}
-	
-	/**
-	 * Listerner przycisku zamknięcia okna chatu
-	 * 
-	 * @param listenForCloseWindowButton
-	 */
-	public void addWindowCloseButtonListener(WindowListener listenForCloseWindowButton)
-	{
-		frame.addWindowListener(listenForCloseWindowButton);
-	}
-	
-	/**
-	 * Metoda zwracająca zawartość pola, w którym użytkownik wpisuje wiadomość o wysłania
-	 * 
-	 * @return treść wiadomosci
-	 */
-	public String getUserTextField()
-	{
-		return this.userTextfield.getText();
-	}
+
 	
 	/**
 	 * Metoda usuwająca tekst wpisany przez użytkownika w polu wiadomości
