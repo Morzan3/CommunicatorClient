@@ -159,7 +159,7 @@ public class View
 		{
 			for(MessageData messageData : userData.getUsersMessages())
 			{
-				messageData.setUserMessage(userData.getUserId().getUserName() +":"+ messageData.getMessage());
+				messageData.setUserMessage(userData.getUserIdData().getUserName() +":"+ messageData.getMessage());
 			}
 		}
 	}
@@ -226,7 +226,7 @@ public class View
 		{
 			if(userData.isUserActive() == true)
 			{
-				userListToSort.add(userData.getUserId().getUserName());
+				userListToSort.add(userData.getUserIdData().getUserName());
 			}
 		}
 		

@@ -14,46 +14,12 @@ public class UserId implements Serializable
 	private final String userName;
 	
 	/**
-	 * Konstruktor tworzący obiekt na podstawie zadanego parametru
+	 * Konstruktor tworzący obiekt na podstawei zadanego parametru
 	 * 
-	 * @param userName nazwa użytkownika
+	 * @param userName Nazwa użytownika
 	 */
 	public UserId(final String userName)
 	{
 		this.userName = userName;
-	};
-	
-	@Override
-	public boolean equals(Object other) 
-	{
-		if(other == null)
-		{
-			return false;
-		}
-		
-		if(!(other instanceof UserId))
-		{
-			return false;
-		}
-		
-		String otherUserName = (String) other;
-		return this.userName.equals(otherUserName);
-	}
-	
-	@Override
-	public int hashCode() 
-	{
-		return userName.hashCode();
-	}
-	
-	/**
-	 * Metoda zwracająca nazwę użytkownika z ID konieczna przy wyświetlaniu wiadomości w widoku ponieważ
-	 * bez niej nie da się ich zidentyfikować
-	 * 
-	 * @return user name
-	 */
-	public String getUserName()
-	{
-		return userName;
 	}
 }
