@@ -113,7 +113,7 @@ public class Client
 				try 
 				{	
 					ClientHandeledEvent serverEvent = (ClientHandeledEvent)inputStream.readObject();
-					view.setServerEvent(serverEvent);
+					view.executeClientHandeledEvent(serverEvent);
 				}	
 				catch(IOException e) 
 				{

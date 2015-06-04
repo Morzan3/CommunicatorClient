@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
+
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.ClientHandeledEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.ConnectionEstablishedServerEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.ConversationInformationServerEvent;
-import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.UserAlreadyExistsServerEvent;
+import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.InformationMessageServerEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.model.data.MessageData;
 import pl.slusarczyk.ignacy.CommunicatorServer.model.data.UserData;
-
 
 /**
  * Główna klasa widoku odpowiedzialna za odpowiednie wyświetlanie okien i otrzymanych konwersacji
@@ -43,29 +43,41 @@ public class View
 		this.createJoinRoomView = new CreateJoinRoomWindow(eventQueue);
 		this.eventQueue = eventQueue;
 		
+		
+		/**Tworze mapę strategii obsługi makiet*/
 		this.strategyMap = new HashMap<Class<? extends ClientHandeledEvent>, ClientHandeledEventStrategy>();
 		this.strategyMap.put(ConnectionEstablishedServerEvent.class, new ConnectionEstablishedStrategy());
 		this.strategyMap.put(ConversationInformationServerEvent.class, new ConversationInformationServerEventStrategy());
-		this.strategyMap.put(UserAlreadyExistsServerEvent.class, new UserAlreadyExistsServerEventStrategy());
+		this.strategyMap.put(InformationMessageServerEvent.class, new InformationMessageServerEventStrategy());
 	}
 	
-	public void setServerEvent(ClientHandeledEvent clientHandeledEventObject) 
+	/**Metoda odpowiedzialna za wykonanie strategii odpowiadającej dostarczonej makiety*/
+	public void executeClientHandeledEvent(ClientHandeledEvent clientHandeledEventObject) 
 	{
 		ClientHandeledEventStrategy clientHandeledEventStrategy = strategyMap.get(clientHandeledEventObject.getClass());
 		clientHandeledEventStrategy.execute((ClientHandeledEvent)clientHandeledEventObject);
 	}
 	
-	abstract class ClientHandeledEventStrategy {
-		
+	/**
+	 * Abstrakcyjna klasa bazowa dla klas strategii obsługujących zdarzenia.
+	 * 
+	 * @author Ignacy Ślusarczyk
+	 */
+	abstract class ClientHandeledEventStrategy 
+	{
 		/**
-		 * Obsługuje makiety
+		 * Abstrakcyjna metoda opisująca obsługę danego zdarzenia.
 		 * 
-		 * @param 
+		 * @param ClientHandeledEvent makieta od serwera, która musi zostać poprawnie obsłużona
 		 */
 		abstract void execute(final ClientHandeledEvent clientHandeledEventObject);
 	}
 	
-	
+	/**
+	 * Klasa wewnętrzna opisująca strategię obsługi przyjścia informacji od serwera, że dołączenie lub utworzenie pokoju zakończyło się pomyślnie
+	 *
+	 * @author Ignacy Ślusarczyk
+	 */
 	class ConnectionEstablishedStrategy extends ClientHandeledEventStrategy
 	{
 		
@@ -79,6 +91,11 @@ public class View
 		}
 	}
 	
+	/**
+	 * Klasa wewnętrzna opisująca strategię obsługi przyjścia rozmowy oraz listy użytkowników
+	 *
+	 * @author Ignacy Ślusarczyk
+	 */
 	class ConversationInformationServerEventStrategy extends ClientHandeledEventStrategy
 	{
 		
@@ -91,16 +108,17 @@ public class View
 		}
 	}
 	
-	class UserAlreadyExistsServerEventStrategy extends ClientHandeledEventStrategy
+	class InformationMessageServerEventStrategy extends ClientHandeledEventStrategy
 	{
-
 		@Override
-		void execute(ClientHandeledEvent clientHandeledEventObject) 
+		void execute(ClientHandeledEvent clientHandeledEventObject)
 		{
-			createJoinRoomView.userAlreadyExists();
+			InformationMessageServerEvent informationMessageObject = (InformationMessageServerEvent) clientHandeledEventObject;
+			createJoinRoomView.displayInfoMessage(informationMessageObject);
 		}
-		
 	}
+	
+	/**Metody widoku*/
 	
 	/**
 	 * Metoda uaktualniająca wyświetlaną rozmowę oraz aktywnych użytkowników

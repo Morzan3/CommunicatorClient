@@ -17,7 +17,7 @@ import javax.swing.SwingUtilities;
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.CreateNewRoom;
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.JoinExistingRoom;
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
-import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.UserName;
+import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.InformationMessageServerEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.model.UserId;
 
 /**Klasa odpowiedzialna za okno tworzenia nowego pokoju**/
@@ -58,7 +58,7 @@ class CreateJoinRoomWindow
 			public void actionPerformed(ActionEvent e)
 			{	
 				UserId userId = new UserId(userNameField.getText());
-				eventQueue.offer(new UserName(userId, roomNameField.getText()));
+				//eventQueue.offer(new UserName(userId, roomNameField.getText()));
 				eventQueue.offer(new CreateNewRoom(roomNameField.getText(), userId));
 			}
 		});
@@ -69,9 +69,7 @@ class CreateJoinRoomWindow
 			@Override
 			public void actionPerformed(ActionEvent e) 
 			{
-				UserId userId = new UserId(userNameField.getText());
-				eventQueue.offer(new UserName(userId, roomNameField.getText()));	
-				eventQueue.offer(new JoinExistingRoom(roomNameField.getText(), userId));
+				eventQueue.offer(new JoinExistingRoom(roomNameField.getText(), new UserId(userNameField.getText())));
 			}
 		});
 		
@@ -98,8 +96,6 @@ class CreateJoinRoomWindow
 		 /**Dodajemy kontener do głównej ramki oraz wyświeltamy główna ramkę*/
 		 frame.add(container);
 		 frame.setVisible(true);
-			  
-
 	}
 	
 	/**
@@ -110,13 +106,18 @@ class CreateJoinRoomWindow
 		frame.setVisible(false);
 		frame.dispose();
 	}
-	
-	public void userAlreadyExists()
+
+	/**
+	 * Metoda odpowiedzialna za wyświetlanie informacji przychodzacych z serwera
+	 * 
+	 * @param informationMessageObject Obiekt InformationMessage zawierającyc informację do wyswietlenia 
+	 */
+	public void displayInfoMessage(final InformationMessageServerEvent informationMessageObject)
 	{
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run()
 			{
-				JOptionPane.showMessageDialog(frame, "Użytkownik o takim nicku już istnieje");
+				JOptionPane.showMessageDialog(frame, informationMessageObject.getMessage());
 			}
 		});
 	}
