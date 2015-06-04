@@ -89,7 +89,7 @@ public class Client
 	{
 		try
 		{
-			//outputStream.writeObject(new ClientLeftRoom(userID,roomName));
+
 			socket.close();
 		}
 		catch(IOException ex)
@@ -117,7 +117,8 @@ public class Client
 				}	
 				catch(IOException e) 
 				{
-					System.exit(0);
+					closeConnection();
+					System.exit(1);
 				}
 				catch(ClassNotFoundException e) 
 				{

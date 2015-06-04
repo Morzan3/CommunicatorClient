@@ -18,7 +18,7 @@ import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.CreateNewRoom
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.JoinExistingRoom;
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.InformationMessageServerEvent;
-import pl.slusarczyk.ignacy.CommunicatorServer.model.UserId;
+import pl.slusarczyk.ignacy.CommunicatorServer.model.data.UserIdData;
 
 /**Klasa odpowiedzialna za okno tworzenia nowego pokoju**/
 class CreateJoinRoomWindow
@@ -57,9 +57,7 @@ class CreateJoinRoomWindow
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{	
-				UserId userId = new UserId(userNameField.getText());
-				//eventQueue.offer(new UserName(userId, roomNameField.getText()));
-				eventQueue.offer(new CreateNewRoom(roomNameField.getText(), userId));
+				eventQueue.offer(new CreateNewRoom(roomNameField.getText(), new UserIdData(userNameField.getText())));
 			}
 		});
 		
@@ -69,7 +67,7 @@ class CreateJoinRoomWindow
 			@Override
 			public void actionPerformed(ActionEvent e) 
 			{
-				eventQueue.offer(new JoinExistingRoom(roomNameField.getText(), new UserId(userNameField.getText())));
+				eventQueue.offer(new JoinExistingRoom(roomNameField.getText(), new UserIdData(userNameField.getText())));
 			}
 		});
 		

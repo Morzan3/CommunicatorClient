@@ -85,7 +85,7 @@ public class View
 		void execute(ClientHandeledEvent clientHandeledEventObject) 
 		{
 			ConnectionEstablishedServerEvent connectionEstablishedInformation = (ConnectionEstablishedServerEvent) clientHandeledEventObject;
-			mainChatView = new MainChatWindow(eventQueue,connectionEstablishedInformation.getUserID(), connectionEstablishedInformation.getRoomName());
+			mainChatView = new MainChatWindow(eventQueue,connectionEstablishedInformation.getUserIDData(), connectionEstablishedInformation.getRoomName());
 			createJoinRoomView.closeCreateRoomWindow();
 			createJoinRoomView = null;
 		}
@@ -104,7 +104,6 @@ public class View
 		{
 			ConversationInformationServerEvent conversationInformationObject = (ConversationInformationServerEvent) clientHandeledEventObject;
 			updateUserConversationAndList(conversationInformationObject);
-			
 		}
 	}
 	

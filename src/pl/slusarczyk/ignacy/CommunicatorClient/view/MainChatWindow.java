@@ -9,7 +9,6 @@ import java.util.concurrent.BlockingQueue;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
@@ -18,7 +17,7 @@ import javax.swing.SwingUtilities;
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ClientLeftRoom;
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.NewMessage;
 import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandeledEvent;
-import pl.slusarczyk.ignacy.CommunicatorServer.model.UserId;
+import pl.slusarczyk.ignacy.CommunicatorServer.model.data.UserIdData;
 
 /**Klasa odpowiedzialna za wyświetlanie głównego okna chatu**/
 
@@ -42,13 +41,13 @@ class MainChatWindow
 	private JScrollPane onlineUsersScroll;
 	/**Kolejka blokujaca do ktorej sa dodawane nowe eventy*/
 	private final BlockingQueue<ServerHandeledEvent> eventQueue;
-	private final UserId userId;
+	private final UserIdData userIdData;
 	private final String roomName;
 	
 	/**Konstruktro inicjulizujący i wyświetlający ramkę*/
-	public MainChatWindow( final BlockingQueue<ServerHandeledEvent> eventQueue, UserId userId, String roomName)
+	public MainChatWindow( final BlockingQueue<ServerHandeledEvent> eventQueue, UserIdData userIdData, String roomName)
 	{	
-		this.userId = userId;
+		this.userIdData = userIdData;
 		this.roomName = roomName;
 		this.eventQueue = eventQueue;
 		initialize();
@@ -71,15 +70,8 @@ class MainChatWindow
 		    @Override
 		    public void windowClosing(WindowEvent e) 
 		    {
-		        int confirm = JOptionPane.showOptionDialog(
-		             null, "Are You Sure to Close Application?", 
-		             "Exit Confirmation", JOptionPane.YES_NO_OPTION, 
-		             JOptionPane.QUESTION_MESSAGE, null, null, null);
-		        if (confirm == 0) 
-		        {
-		        	eventQueue.offer(new ClientLeftRoom(userId, roomName));
+		        	eventQueue.offer(new ClientLeftRoom(userIdData, roomName));
 		           System.exit(0);
-		        }
 		    }
 		};
 		frame.addWindowListener(exitListener);
@@ -120,7 +112,7 @@ class MainChatWindow
 			@Override
 			public void actionPerformed(ActionEvent e) 
 			{
-				eventQueue.offer(new NewMessage(roomName,userId,userTextfield.getText()));
+				eventQueue.offer(new NewMessage(roomName,userIdData,userTextfield.getText()));
 				userTextfield.setText("");
 			}
 		});
