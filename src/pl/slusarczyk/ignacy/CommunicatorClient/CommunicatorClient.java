@@ -1,4 +1,4 @@
-package pl.slusarczyk.ignacy.CommunicatorClient.amainclassapplication;
+package pl.slusarczyk.ignacy.CommunicatorClient;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

@@ -19,8 +19,8 @@ import pl.slusarczyk.ignacy.CommunicatorServer.model.data.UserData;
 
 /**
  * Główna klasa widoku odpowiedzialna za odpowiednie wyświetlanie okien i otrzymanych konwersacji
+ * 
  * @author Ignacy Ślusarczyk
- *
  */
 public class View 
 {
@@ -51,7 +51,10 @@ public class View
 		this.strategyMap.put(InformationMessageServerEvent.class, new InformationMessageServerEventStrategy());
 	}
 	
-	/**Metoda odpowiedzialna za wykonanie strategii odpowiadającej dostarczonej makiety*/
+	/**Metoda odpowiedzialna za wykonanie strategii odpowiadającej dostarczonej makiety
+	 * 
+	 * @param clientHandeledEventObject obiekt wysłany przez serwer
+	 */
 	public void executeClientHandeledEvent(ClientHandeledEvent clientHandeledEventObject) 
 	{
 		ClientHandeledEventStrategy clientHandeledEventStrategy = strategyMap.get(clientHandeledEventObject.getClass());
@@ -98,7 +101,6 @@ public class View
 	 */
 	class ConversationInformationServerEventStrategy extends ClientHandeledEventStrategy
 	{
-		
 		@Override
 		void execute(ClientHandeledEvent clientHandeledEventObject) 
 		{
@@ -107,6 +109,11 @@ public class View
 		}
 	}
 	
+	/**
+	 * Klasa wewnętrzna opisująca strategię obsługi przyjścia od serwera informacji do wyświetlenia 
+	 * 
+	 * @author Ignacy Ślusarczyk
+	 */
 	class InformationMessageServerEventStrategy extends ClientHandeledEventStrategy
 	{
 		@Override
@@ -117,7 +124,7 @@ public class View
 		}
 	}
 	
-	/**Metody widoku*/
+	/****************************Metody widoku*********************88*/
 	
 	/**
 	 * Metoda uaktualniająca wyświetlaną rozmowę oraz aktywnych użytkowników
@@ -128,12 +135,12 @@ public class View
 	{
 		updateConversation(conversationInformationServerEvent);
 		updateUserList(conversationInformationServerEvent);
-		mainChatView.resetUserTextField();
 	}
 	
 	/**
 	 * Metoda odpowiedzialna bezpośrednio na uaktualnienie wyświetlanej rozmowy
-	 * @param conversationInformationServerEvent
+	 * 
+	 * @param conversationInformationServerEvent opakowane informacje potrzebne do uaktualnieneia wyświetlanej rozmowy
 	 */
 	public void updateConversation(ConversationInformationServerEvent conversationInformationServerEvent)
 	{
@@ -164,7 +171,7 @@ public class View
 	}
 	
 	/**
-	 * Metoda zbierająca wszystkie informacje użytkowników z danego pokoju
+	 * Metoda zbierająca wszystkie wiadomości użytkowników z danego pokoju
 	 * 
 	 * @param conversationInfo opakowane informacje
 	 * @return zbiór wszystkich wiadomości
@@ -221,6 +228,7 @@ public class View
 		
 		List<String> userListToSort = new ArrayList<String>();
 		
+		/**Przechodzimy po wszystkich użytkownikach i sprawdzamy czy dany użytkownik jest aktywny, jeśli jest to dodajemymy go do listy*/
 		for(UserData userData: conversationInformationServerEvent.getRoom().getUserSet())
 		{
 			if(userData.isUserActive() == true)

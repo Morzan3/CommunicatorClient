@@ -25,7 +25,7 @@ class MainChatWindow
 {
 	/**Główna ramka*/
 	private JFrame frame;
-	/**Obszar gdzie wyśwyeitlana jest rozmowa pomiedzy użytkownikami */
+	/**Obszar gdzie wyświetlana jest rozmowa pomiedzy użytkownikami */
 	private JTextArea usersConversation;
 	/**Obszar gdzie użytkownik wpisuje swoją wiadomość */
 	private JTextArea userTextfield;
@@ -41,11 +41,13 @@ class MainChatWindow
 	private JScrollPane onlineUsersScroll;
 	/**Kolejka blokujaca do ktorej sa dodawane nowe eventy*/
 	private final BlockingQueue<ServerHandeledEvent> eventQueue;
+	/**Opakowana nazwa użytkownika za pomocą, której serwer identyfikuje jego eventy*/
 	private final UserIdData userIdData;
+	/**Nazwa pokoju, w którym użytkownika się znajduje*/
 	private final String roomName;
 	
 	/**Konstruktro inicjulizujący i wyświetlający ramkę*/
-	public MainChatWindow( final BlockingQueue<ServerHandeledEvent> eventQueue, UserIdData userIdData, String roomName)
+	public MainChatWindow( final BlockingQueue<ServerHandeledEvent> eventQueue, final UserIdData userIdData, final String roomName)
 	{	
 		this.userIdData = userIdData;
 		this.roomName = roomName;
@@ -65,6 +67,7 @@ class MainChatWindow
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
+		/**Przeciążam kliknięcie zamknięcia okna chatu*/
 		WindowAdapter exitListener = new WindowAdapter() 
 		{
 		    @Override
@@ -103,12 +106,11 @@ class MainChatWindow
 		onlineUsersScroll.setBounds(284, 34, 154, 184);
 		frame.getContentPane().add(onlineUsersScroll);
 		
-		/**Inicjalizowanie wycisku wyślij*/
-		sendButton = new JButton("Send");
+		/**Inicjalizowanie przycisku wyślij*/
+		sendButton = new JButton("Send message");
 		sendButton.setBounds(288, 224, 117, 25);
 		sendButton.addActionListener(new ActionListener() 
 		{
-			
 			@Override
 			public void actionPerformed(ActionEvent e) 
 			{
@@ -123,19 +125,8 @@ class MainChatWindow
 		lblUsersInRoom = new JLabel("Users in room");
 		lblUsersInRoom.setBounds(300, 4, 126, 30);
 		frame.getContentPane().add(lblUsersInRoom);
-		
 	}
-	
 
-	
-	/**
-	 * Metoda usuwająca tekst wpisany przez użytkownika w polu wiadomości
-	 */
-	public void resetUserTextField()
-	{
-		userTextfield.setText("");
-	}
-	
 	/**
 	 * Metoda uaktualniająca okno, w którym wyświetlana jest rozmowa użytkowników
 	 * 
@@ -166,14 +157,5 @@ class MainChatWindow
 				onlineUsers.append(userList);
 			}
 		});
-	}
-	
-	/**
-	 * Metoda zamykająca okno chatu
-	 */
-	public void closeMainChatView()
-	{
-		frame.dispose();
-		frame.setVisible(false);
 	}
 }

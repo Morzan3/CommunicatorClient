@@ -20,7 +20,7 @@ import pl.slusarczyk.ignacy.CommunicatorClient.serverhandeledevent.ServerHandele
 import pl.slusarczyk.ignacy.CommunicatorServer.clienthandeledevent.InformationMessageServerEvent;
 import pl.slusarczyk.ignacy.CommunicatorServer.model.data.UserIdData;
 
-/**Klasa odpowiedzialna za okno tworzenia nowego pokoju**/
+/**Klasa odpowiedzialna za okno tworzenia lub dolaczania do pokoju**/
 class CreateJoinRoomWindow
 {
 	/**Ramka aplikacji*/
@@ -40,7 +40,8 @@ class CreateJoinRoomWindow
 	public CreateJoinRoomWindow(final BlockingQueue<ServerHandeledEvent> eventQueueObject)
 	{
 		this.eventQueue = eventQueueObject;
-		/**Tworzymy główne okno tworzenia nowego pokoju*/
+		
+		/**Tworzymy główne okno*/
 		frame = new JFrame("Create or join room");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(new Dimension(400, 150));
@@ -50,7 +51,7 @@ class CreateJoinRoomWindow
 		BoxLayout layout = new BoxLayout(container, BoxLayout.Y_AXIS);
 		container.setLayout(layout);
 			
-		/**Inicjalizujemy przycisk oraz obszary wpisywania informacji*/
+		/**Inicjalizujemy przycisk tworzenia nowego pokoju*/
 		submitInformationButtonAndJoinRoom = new JButton("Create");
 		submitInformationButtonAndJoinRoom.addActionListener(new ActionListener() 
 		{	
@@ -61,6 +62,7 @@ class CreateJoinRoomWindow
 			}
 		});
 		
+		/**Inicjalizujemy przycisk dołączania do istniejącego pokoju*/
 		submitInformationButtonAndCreateRoom = new JButton("Join");
 		submitInformationButtonAndCreateRoom.addActionListener(new ActionListener()
 		{
@@ -81,7 +83,7 @@ class CreateJoinRoomWindow
 		submitInformationButtonAndJoinRoom.setAlignmentX(Component.CENTER_ALIGNMENT);
 		submitInformationButtonAndCreateRoom.setAlignmentX(Component.CENTER_ALIGNMENT);
 		
-		/**Ustawiamy tekst domyślnie wpisany w poszczególne pola, pełniący funkcję infomracyjną*/
+		/**Ustawiamy tekst domyślnie wpisany w poszczególne pola, pełniący funkcję informacyjną*/
 		userNameField.setText("Test");
 		roomNameField.setText("Projekt");
 			

@@ -3,6 +3,11 @@ package pl.slusarczyk.ignacy.CommunicatorServer.model.data;
 import java.io.Serializable;
 
 
+/**
+ * Klasa opakowująca nazwę użytkownika, wysyłana do klienta
+ * 
+ * @author Ignacy Ślusarczyk
+ */
 public class UserIdData implements Serializable
 {
 	private static final long serialVersionUID = 1L;
@@ -10,18 +15,17 @@ public class UserIdData implements Serializable
 	private final String userNameToDisplay;
 	
 	/**
-	 * Konstruktor tworzący obiekt na podstawei zadanego parametru
+	 * Konstruktor tworzący obiekt na podstawie zadanego parametru
 	 * 
 	 * @param userName Nazwa użytownika
 	 */
-	public UserIdData(final String userNameToDisplay)
+	public UserIdData(final String userName)
 	{
-		this.userNameToDisplay = userNameToDisplay;
+		this.userNameToDisplay = userName;
 	}
-
+		
 	/**
-	 * Metoda zwracająca nazwę użytkownika z ID konieczna przy wyświetlaniu wiadomości w widoku ponieważ
-	 * bez niej nie da się ich zidentyfikować
+	 * Metoda zwracająca nazwę użytkownika w celu dopasowania ich do wysłanych przez nich wiadomości
 	 * 
 	 * @return user name
 	 */

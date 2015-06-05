@@ -76,7 +76,7 @@ public class Client
 			}
 			catch (InterruptedException ex)
 			{
-				
+				System.err.print(ex);
 			}
 			
 		}
@@ -107,7 +107,7 @@ public class Client
 	{
 		public void run() 
 		{
-			System.out.println("Rozpoczeto nasluchiwanie");
+			System.out.println("Rozpoczeto nasluchiwanie zdarzeń od serwera");
 			while (true) 
 			{
 				try 
